@@ -20,21 +20,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import glob
-from os.path import basename, dirname, isfile
+from pyrogram import filters
+from pyrogram.types import Message
+
+from FallenMusic import app, pytgcalls
+from FallenMusic.Helpers import admin_check, close_key, is_streaming, stream_off
 
 
-def __list_all_modules():
-    mod_paths = glob.glob(dirname(__file__) + "/*.py")
+@app.on_message(filters.command(["pause"]) | filters.command(["كتم","اسكت","ايقاف مؤقت"],prefixes= ["/", "!","","#"]) & filters.group)
+@admin_check
+async def pause_str(_, message: Message):
+    try:
+        await message.delete()
+    except:
+        pass
 
-    all_modules = [
-        basename(f)[:-3]
-        for f in mod_paths
-        if isfile(f) and f.endswith(".py") and not f.endswith("__init__.py")
-    ]
+    if not await is_streaming(message.chat.id):
+        return await message.reply_text(
+            "⎊ اكتب كمل او /resume عشان يكمل الاغنيه"
+        )
 
-    return all_modules
-
-
-ALL_MODULES = sorted(__list_all_modules())
-__all__ = ALL_MODULES + ["ALL_MODULES"]
+    await pytgcalls.pause_stream(message.chat.id)
+    await stream_off(message.chat.id)
+    return await message.reply_text(
+        text=f"⎊ تم ايقاف التشغيل مؤقتاً 🎧\n \n⎊ بواسطة : {message.from_user.mention} ♥",
+        reply_markup=close_key,
+    )

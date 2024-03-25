@@ -20,21 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import glob
-from os.path import basename, dirname, isfile
+from pyrogram import filters
+from pyrogram.types import Message
+
+from FallenMusic import app, pytgcalls
+from FallenMusic.Helpers import _clear_, admin_check, close_key
 
 
-def __list_all_modules():
-    mod_paths = glob.glob(dirname(__file__) + "/*.py")
+@app.on_message(filters.command(["stop", "end"]) | filters.command(["ايقاف","قف"],prefixes= ["/", "!","","#"]) & filters.group)
+@admin_check
+async def stop_str(_, message: Message):
+    try:
+        await message.delete()
+    except:
+        pass
+    try:
+        await _clear_(message.chat.id)
+        await pytgcalls.leave_group_call(message.chat.id)
+    except:
+        pass
 
-    all_modules = [
-        basename(f)[:-3]
-        for f in mod_paths
-        if isfile(f) and f.endswith(".py") and not f.endswith("__init__.py")
-    ]
-
-    return all_modules
-
-
-ALL_MODULES = sorted(__list_all_modules())
-__all__ = ALL_MODULES + ["ALL_MODULES"]
+    return await message.reply_text(
+        text=f"⎊ **تم ايقاف التشغيل** \n \n⎊ بواسطة : {message.from_user.mention} 🥀",
+        reply_markup=close_key,
+    )
